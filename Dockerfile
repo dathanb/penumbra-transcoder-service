@@ -1,6 +1,6 @@
-FROM dathan/ffmpeg-vaapi:latest
+FROM jrottenberg/ffmpeg:latest
 
 ADD . /app
 WORKDIR /app
 
-ENTRYPOINT ["/app/transcoder"]
+ENTRYPOINT ["/app/transcoder-service"]

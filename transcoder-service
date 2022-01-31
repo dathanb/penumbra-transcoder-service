@@ -14,24 +14,13 @@ function elementIn {
 function transcode_video {
 	local input_file=$1
 	local output_file=$2
-	local bitrate=$3
-	local maxrate=$4
-	local bufsize=$5
-	echo "Transcoding $input_file -> $output_file, -b:v $bitrate -maxrate $maxrate -bufsize $bufsize"
+	echo "Transcoding $input_file -> $output_file"
     ffmpeg \
-	  -init_hw_device vaapi=foo:/dev/dri/renderD128 \
-	  -hwaccel vaapi \
-	  -hwaccel_device foo \
-	  -hwaccel_output_format vaapi \
 	  -i "${input_file}" \
 	  -f matroska \
-	  -filter_hw_device foo \
-	  -vf 'format=nv12|vaapi,hwupload' \
-	  -c:v h264_vaapi \
-	  -b:v "${bitrate}" \
-	  -maxrate "${maxrate}" \
-	  -bufsize "${bufsize}" \
-	  -g 60 \
+	  -threads 4 \
+	  -c:v libx264 \
+	  -crf 18 \
 	  -c:a copy \
 	  -c:s copy \
 	  "${output_file}"
@@ -40,13 +29,13 @@ function transcode_video {
 function transcode_bluray {
 	local input_file=$1
 	local output_file=$2
-	transcode_video "$input_file" "$output_file" 6000k 6000k 12000k
+	transcode_video "$input_file" "$output_file"
 }
 
 function transcode_dvd {
 	local input_file=$1
 	local output_file=$2
-	transcode_video "$input_file" "$output_file" 3000k 3000k 1500k
+	transcode_video "$input_file" "$output_file"
 }
 
 function transcode_one_dvd {
