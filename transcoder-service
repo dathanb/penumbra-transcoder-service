@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -e
-set -x
-
 shopt -s nullglob
 
 function elementIn {
@@ -112,7 +109,7 @@ function transcode_one {
     transcode_one_bluray || transcode_one_dvd
 }
 
-rm /data/Staging/*.mkv
+rm -f /data/Staging/*.mkv
 while [[ true ]]; do
     transcode_one || ( echo "No pending transcodings; sleeping for five minutes"; sleep 300 )
 done
