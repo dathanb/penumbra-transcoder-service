@@ -1,6 +1,6 @@
 FROM jrottenberg/ffmpeg:latest
 
-ADD . /app
+ADD transcoder-service /app/
 WORKDIR /app
 
 ENTRYPOINT ["/app/transcoder-service"]

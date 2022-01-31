@@ -1,9 +1,8 @@
 #!/bin/sh
 
+  #--detach \
 docker run \
   --name transcoder \
-  --detach \
-  --mount "type=bind,src=/volume1/Media/Pending,dst=/input" \
-  --mount "type=bind,src=/volume1/Media/Staging,dst=/output" \
-  --restart always \
+  --mount "type=bind,src=/volume1/Media/Archive,dst=/data" \
+  --restart on-failure \
   dathan/transcoder-service
