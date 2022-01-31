@@ -1,0 +1,10 @@
+#!/bin/sh
+
+docker run \
+  --rm \
+  --name transcoder \
+  --detach \
+  --device /dev/dri:/dev/dri \
+  --mount "type=bind,src=/volume1/Media/Pending,dst=/input" \
+  --mount "type=bind,src=/volume1/Media/Staging,dst=/output" \
+  dathan/transcoder-service

@@ -1,0 +1,39 @@
+#!/bin/sh
+
+input=$1
+shift
+
+file_name="${input#/volume1/Media/Pending/DVD/}"
+short_file_name="${file_name%.mkv}"
+docker_input_path="/data/DVD/${file_name}"
+output_file_name="${short_file_name}.mkv"
+docker_output_path="/output/${output_file_name}"
+
+echo $docker_input_path
+echo $docker_output_path
+
+rm -f "/volume1/Media/Pending/Staging/${output_file_name}"
+
+docker run \
+  --rm \
+  --mount "type=bind,src=/volume1/Media/Pending,dst=/data" \
+  --mount "type=bind,src=/volume1/Media/Staging,dst=/output" \
+  --device /dev/dri:/dev/dri \
+  dathan/ffmpeg-vaapi:4.0 \
+  -init_hw_device vaapi=foo:/dev/dri/renderD128 \
+  -hwaccel vaapi \
+  -hwaccel_device foo \
+  -hwaccel_output_format vaapi \
+  -i "${docker_input_path}" \
+  -f matroska \
+  -filter_hw_device foo \
+  -vf 'format=nv12|vaapi,scale_vaapi=w=720:h=-1,hwupload' \
+  -c:v h264_vaapi \
+  -b:v 3000k \
+  -maxrate 3000k \
+  -bufsize 1500k \
+  -g 60 \
+  -c:a copy \
+  -c:s copy \
+  "${docker_output_path}"
+

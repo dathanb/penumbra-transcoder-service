@@ -1,0 +1,34 @@
+#!/bin/sh
+
+input=$1
+shift
+
+file_name="${input#/volume1/Media/Pending/Blu-ray/}"
+short_file_name="${file_name%.mkv}"
+docker_input_path="/data/Blu-ray/${file_name}"
+output_file_name="${short_file_name}.mkv"
+docker_output_path="/output/${output_file_name}"
+
+echo $docker_input_path
+echo $docker_output_path
+
+rm -f "/volume1/Media/Staging/${output_file_name}"
+
+docker run \
+  --detach \
+  --rm \
+  --mount "type=bind,src=/volume1/Media/Pending,dst=/data" \
+  --mount "type=bind,src=/volume1/Media/Staging,dst=/output" \
+  jrottenberg/ffmpeg \
+  -i "${docker_input_path}" \
+  -f matroska \
+  -threads 16 \
+  -c:v h264 \
+  -b:v 4000k \
+  -maxrate 6000k \
+  -bufsize 12000k \
+  -g 60 \
+  -c:a copy \
+  -c:s copy \
+  "${docker_output_path}"
+
