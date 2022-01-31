@@ -1,0 +1,117 @@
+#!/bin/bash
+
+shopt -s nullglob
+
+function elementIn {
+	local e match="$1"
+	shift
+	for e; do 
+		[[ "$e" == "$match" ]] && return 0
+	done
+	return 1
+}
+
+function transcode_video {
+	local input_file=$1
+	local output_file=$2
+	local bitrate=$3
+	local maxrate=$4
+	local bufsize=$5
+	echo "Transcoding $input_file -> $output_file, -b:v $bitrate -maxrate $maxrate -bufsize $bufsize"
+    ffmpeg \
+	  -init_hw_device vaapi=foo:/dev/dri/renderD128 \
+	  -hwaccel vaapi \
+	  -hwaccel_device foo \
+	  -hwaccel_output_format vaapi \
+	  -i "${input_file}" \
+	  -f matroska \
+	  -filter_hw_device foo \
+	  -vf 'format=nv12|vaapi,hwupload' \
+	  -c:v h264_vaapi \
+	  -b:v "${bitrate}" \
+	  -maxrate "${maxrate}" \
+	  -bufsize "${bufsize}" \
+	  -g 60 \
+	  -c:a copy \
+	  -c:s copy \
+	  "${output_file}"
+}
+
+function transcode_bluray {
+	local input_file=$1
+	local output_file=$2
+	transcode_video "$input_file" "$output_file" 6000k 6000k 12000k
+}
+
+function transcode_dvd {
+	local input_file=$1
+	local output_file=$2
+	transcode_video "$input_file" "$output_file" 3000k 3000k 1500k
+}
+
+function transcode_one_dvd {
+	local input_prefix="/input/DVD"
+	local output_prefix="/output"
+	local videos=("$input_prefix/"**)
+	local existing_outputs=("$output_prefix"/**)
+	local path
+	local filename
+	local output_path
+
+	while [[ "${#videos}" -gt 0 ]]; do
+		path="${videos[0]}"
+		videos=("${videos[@]:1}") # shift videos
+		filename="${path#$input_prefix/}"
+		output_path="$output_prefix/${filename}"
+
+		if elementIn "${output_path}" "${existing_outputs[@]}"; then
+			echo "Skipping ${filename} because it appears to have already been transcoded"
+			continue
+		fi
+
+		# transcode it
+		transcode_dvd "$path" "$output_path"
+		return 0
+	done
+
+	return 1
+}
+
+function transcode_one_bluray {
+	local input_prefix="/input/Blu-ray"
+	local output_prefix="/output"
+	local videos=("$input_prefix/"**)
+	local existing_outputs=("$output_prefix"/**)
+	local path
+	local filename
+	local output_path
+
+	while [[ "${#videos}" -gt 0 ]]; do
+		path="${videos[0]}"
+		videos=("${videos[@]:1}") # shift videos
+		filename="${path#$input_prefix/}"
+		output_path="$output_prefix/${filename}"
+
+		if elementIn "${output_path}" "${existing_outputs[@]}"; then
+			echo "Skipping ${filename} because it appears to have already been transcoded"
+			continue
+		fi
+
+		# transcode it
+		transcode_bluray "$path" "$output_path"
+		return 0
+	done
+
+	return 1
+}
+
+function transcode_one {
+	# attempt to pick a single video that doesn't appear to have been transcoded yet and transcode it
+	transcode_one_bluray || transcode_one_dvd
+}
+
+while [[ true ]]; do
+    transcode_one || ( echo "No pending transcodings; sleeping for five minutes"; sleep 300 )
+done
+
+
