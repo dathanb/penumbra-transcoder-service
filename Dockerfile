@@ -1,6 +1,6 @@
-FROM jrottenberg/ffmpeg:latest
+FROM jrottenberg/ffmpeg:4.4.1-ubuntu2004
 
 ADD transcoder-service /app/
 WORKDIR /app
 
-ENTRYPOINT ["/app/transcoder-service"]
+ENTRYPOINT ["/bin/bash", "/app/transcoder-service"]

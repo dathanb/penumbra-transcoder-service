@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#set -x
 shopt -s nullglob
 
 function elementIn {
@@ -17,15 +18,17 @@ function transcode_video {
     local output_file=$3
     echo "Transcoding $input_file -> $output_file"
     ffmpeg \
-      -i "${input_file}" \
-      -f matroska \
-      -threads 4 \
-      -c:v libx264 \
-      -crf 18 \
-      -c:a copy \
-      -c:s copy \
-      -progress "${output_file}.log" \
-      "${staging_file}"
+        -i "${input_file}" \
+        -f matroska \
+        -threads 4 \
+        -c:v libx264 \
+        -crf 18 \
+        -c:a copy \
+        -c:s copy \
+        -progress - \
+	    -stats_period 60 \
+        "${staging_file}" &> "${staging_file}.log"
+
 	if [[ $? == 0 ]]; then
 		mv "${staging_file}" "${output_file}"
 	fi
