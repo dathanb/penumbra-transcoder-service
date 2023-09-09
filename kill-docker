@@ -1,4 +1,4 @@
 #!/bin/bash
 
-docker kill transcoder
-docker rm transcoder
+docker kill transcoder || true
+docker rm transcoder || true

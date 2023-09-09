@@ -1,6 +1,7 @@
-FROM jrottenberg/ffmpeg:4.4.1-ubuntu2004
+FROM jrottenberg/ffmpeg:5-centos
 
-ADD transcoder-service /app/
+CMD mkdir -p /volume1/Media/Archive
+ADD transcoder-service.py /app/
 WORKDIR /app
 
-ENTRYPOINT ["/bin/bash", "/app/transcoder-service"]
+ENTRYPOINT ["/usr/libexec/platform-python3.6", "/app/transcoder-service.py"]

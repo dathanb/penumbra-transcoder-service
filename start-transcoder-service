@@ -1,8 +1,15 @@
 #!/bin/sh
 
+# Run as a service
 docker run \
   --name transcoder \
-  --mount "type=bind,src=/volume1/Media/Archive,dst=/data" \
+  --mount "type=bind,src=/volume1/Media/Archive,dst=/volume1/Media/Archive" \
   --restart on-failure \
   --detach \
   dathan/transcoder-service
+
+## Uncomment this section to run synchronously
+#docker run \
+#  --name transcoder \
+#  --mount "type=bind,src=/volume1/Media/Archive,dst=/volume1/Media/Archive" \
+#  dathan/transcoder-service
